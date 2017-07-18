@@ -14,53 +14,55 @@ import android.widget.TextView;
 import java.util.ArrayList;
 import java.util.List;
 
-public class MainActivity extends AppCompatActivity implements View.OnClickListener {
+import io.reactivex.Observable;
+import io.reactivex.Observer;
+
+public class MainActivity extends AppCompatActivity {
 
     private TextView textResult;
-    private Button btnJust;
-    private Button btnFrom;
-    private Button btnDefer;
     // 목록
     private RecyclerView listView;
     private List<String> data = new ArrayList<>(); // 빈 목록
     private CustomAdapter adapter;
-
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         initView();
-
-
+        initObservable();
     }
 
     private void initView() {
         textResult = (TextView) findViewById(R.id.textResult);
-        btnJust = (Button) findViewById(R.id.btnJust);
-        btnFrom = (Button) findViewById(R.id.btnFrom);
-        btnDefer = (Button) findViewById(R.id.btnDefer);
         // 목록 세팅
         listView = (RecyclerView) findViewById(R.id.listView);
         adapter = new CustomAdapter(data);
         listView.setAdapter(adapter);
         listView.setLayoutManager(new LinearLayoutManager(this));
-
-        btnJust.setOnClickListener(this);
-        btnFrom.setOnClickListener(this);
-        btnDefer.setOnClickListener(this);
     }
 
-    @Override
-    public void onClick(View v) {
-        switch (v.getId()) {
-            case R.id.btnFrom:
-                break;
-            case R.id.btnJust:
-                break;
-            case R.id.btnDefer:
-                break;
-        }
+    Observable<String> forFrom;
+    private void initObservable() {
+        String fromData[] = {"aaa","bbb","ccc","ddd","eee"};
+        forFrom = Observable.fromArray(fromData);
+    }
+
+    // xml 의 onclick에 바인드됨
+    public void doFrom(View view){
+        forFrom.subscribe(
+                str -> data.add(str),                  // 옵저버블(발행자:emitter)로 부터 데이터를 가져온다
+                t   -> { /*일단 아무것도 안함*/ },
+                ()  -> adapter.notifyDataSetChanged()  // 완료되면 리스트에 알린다.
+        );
+    }
+
+    public void doJust(View view){
+
+    }
+
+    public void doDefer(View view){
+
     }
 }
 
