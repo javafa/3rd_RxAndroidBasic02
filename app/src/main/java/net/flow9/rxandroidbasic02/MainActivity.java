@@ -13,9 +13,13 @@ import android.widget.TextView;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.Callable;
 
 import io.reactivex.Observable;
+import io.reactivex.ObservableSource;
 import io.reactivex.Observer;
+import io.reactivex.functions.Action;
+import io.reactivex.functions.Consumer;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -43,13 +47,54 @@ public class MainActivity extends AppCompatActivity {
     }
 
     Observable<String> forFrom;
+    Observable<Memo> forJust;
+    Observable<String> forDefer;
+
     private void initObservable() {
+        // from 생성
         String fromData[] = {"aaa","bbb","ccc","ddd","eee"};
         forFrom = Observable.fromArray(fromData);
+
+        // just 생성
+        Memo memo1 = new Memo("Hello");
+        Memo memo2 = new Memo("Android");
+        Memo memo3 = new Memo("with");
+        Memo memo4 = new Memo("Reactive X!");
+        forJust = Observable.just(memo1, memo2, memo3, memo4);
+
+        // defer 생성
+        forDefer = Observable.defer(new Callable<ObservableSource<? extends String>>() {
+            @Override
+            public ObservableSource<? extends String> call() throws Exception {
+                return Observable.just("monday","tuesday","wednesday");
+            }
+        });
     }
 
     // xml 의 onclick에 바인드됨
     public void doFrom(View view){
+        // 원형
+//        forFrom.subscribe(
+//                new Consumer<String>() {  // onNext
+//                    @Override
+//                    public void accept(String str) throws Exception {
+//                        data.add(str);
+//                    }
+//                },
+//                new Consumer<Throwable>() { // onError
+//                    @Override
+//                    public void accept(Throwable throwable) throws Exception {
+//                        /*일단 아무것도 안함*/
+//                    }
+//                },
+//                new Action() {   // onComplete
+//                    @Override
+//                    public void run() throws Exception {
+//                        adapter.notifyDataSetChanged();
+//                    }
+//                }
+//        );
+        // 람다표현식
         forFrom.subscribe(
                 str -> data.add(str),                  // 옵저버블(발행자:emitter)로 부터 데이터를 가져온다
                 t   -> { /*일단 아무것도 안함*/ },
@@ -58,11 +103,27 @@ public class MainActivity extends AppCompatActivity {
     }
 
     public void doJust(View view){
-
+        forJust.subscribe(
+                obj -> data.add(obj.content),
+                t   -> { /*일단 아무것도 안함*/ },
+                ()  -> adapter.notifyDataSetChanged()
+        );
     }
 
     public void doDefer(View view){
+        forDefer.subscribe(
+                str -> data.add(str),                  // 옵저버블(발행자:emitter)로 부터 데이터를 가져온다
+                t   -> { /*일단 아무것도 안함*/ },
+                ()  -> adapter.notifyDataSetChanged()  // 완료되면 리스트에 알린다.
+        );
 
+    }
+}
+// just 생성자를 위한 클래스
+class Memo {
+    String content;
+    public Memo(String content) {
+        this.content = content;
     }
 }
 
